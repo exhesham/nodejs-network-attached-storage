@@ -1,0 +1,1 @@
+rm -rf ./home_cloud_file_handler;g++  -L/usr/lib/i386-linux-gnu -L/home/hesham/mongo-cxx-driver/build/linux2/normal -I/home/hesham/mongo-cxx-driver/build/linux2/normal -I/home/hesham/mongo-cxx-driver/src  *.cpp -pthread -lmongoclient -lboost_thread -lboost_system -lboost_filesystem -lboost_regex -o home_cloud_file_handler;sudo ./home_cloud_file_handler
