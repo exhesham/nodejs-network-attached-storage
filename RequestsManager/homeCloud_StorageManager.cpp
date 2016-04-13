@@ -32,7 +32,7 @@ string StorageManager::build_file_full_path(const string& dir,const std::string&
   const string fname = "createFilePathForUser";
   ostringstream dir_path;
 
-  dir_path << CONF["homecloud_server.mount.target.1"] << "/" << username <<"/"<<dir << "/"<<filename;
+  dir_path << CONF["homecloud_server.mount.target.1"] << "/"  <<"/"<<dir << "/"<<filename;
 
   return dir_path.str();
 }

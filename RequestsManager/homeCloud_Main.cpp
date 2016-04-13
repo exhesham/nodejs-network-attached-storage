@@ -312,7 +312,7 @@ int listen_for_uploads(void)
                     		PRNT_LOG("[Socket "<<i <<"] file content all received");
                     		// file content all received
                     		stringstream data ;
-                    		data <<  "{'_id':'" << req_wrapper[i].get_record_id() << "'}";
+                    		data <<  "{\"_id\":\"" << req_wrapper[i].get_record_id() << "\"}";
                     		stringstream header;
                     			header <<  "HTTP/1.1 200 OK\r\n"
                     			    "Content-Type: application/json\r\n" <<
