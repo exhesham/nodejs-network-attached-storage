@@ -17,7 +17,7 @@
 #define SSTR( x ) static_cast< std::ostringstream & >( \
         ( std::ostringstream() << std::dec << x ) ).str()
 /*enums*/
-typedef enum { op_type_download,op_type_unknown,op_type_upload,op_type_rename_file,op_type_delete_file,op_type_not_exist} operation_type;
+typedef enum { op_type_download,op_type_download_shared,op_type_unknown,op_type_upload,op_type_rename_file,op_type_delete_file,op_type_not_exist} operation_type;
 
 /*namespaces*/
 using namespace mongo;

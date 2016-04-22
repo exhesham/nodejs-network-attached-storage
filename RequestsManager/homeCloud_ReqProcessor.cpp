@@ -148,7 +148,7 @@ void Socket_data::add_data_chunk(const char* buff,unsigned int buff_size) {
 			PRNT_LOG("Finished receiving file...return.");
 			return;
 		}
-		if(multiparser.getoperationtype() == op_type_download){
+		if(multiparser.getoperationtype() == op_type_download || multiparser.getoperationtype() == op_type_download_shared){
 			PRNT_LOG("Wont process buff because operation is not upload. it is download:" << multiparser.getoperationtype());
 			return;
 		}
@@ -167,7 +167,7 @@ void Socket_data::add_data_chunk(const char* buff,unsigned int buff_size) {
 		if(multiparser.relevant_info_headers_received() && !is_finished_processing_header) {
 			PRNT_LOG("All headers are set");
 			is_finished_processing_header = true;
-			if(session_status != Valid_session){
+			if(session_status != Valid_session && multiparser.getoperationtype() != op_type_download_shared){
 				// check if the session is available:
 				PRNT_LOG("Will try to validate session:" << multiparser.getsessionid());
 

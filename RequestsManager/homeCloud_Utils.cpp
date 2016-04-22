@@ -10,6 +10,10 @@ const operation_type cast_operation_type(const string& operation_type_str){
 	{
 		return op_type_download;
 	}
+	if(operation_type_str == "DownloadShared")
+	{
+		return op_type_download_shared;
+	}
 	if(operation_type_str == "Upload")
 	{
 		return op_type_upload;

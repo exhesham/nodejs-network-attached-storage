@@ -60,25 +60,26 @@ int listen_for_uploads(void);
 
 void mountFlashDrive() {
 	const string fname="mountFlashDrive";
-	PRNT_LOG("Called");
-	int num_of_devices = atoi(CONF["homecloud_server.mount.num_of_devices"].c_str());
-	for(int i =1;i<= num_of_devices;i++){
-		PRNT_LOG("Mounting drive:" << CONF["homecloud_server.mount.source." + SSTR(i)] << " to:" <<CONF["homecloud_server.mount.target." + SSTR(i)]);
-		if (mount(CONF["homecloud_server.mount.source." + SSTR(i)].c_str(),
-				CONF["homecloud_server.mount.target." + SSTR(i)].c_str(),
-				CONF["homecloud_server.mount.filesystemtype." + SSTR(i)].c_str(),
-				MS_NOATIME, NULL)) {
-			if (errno == EBUSY) {
-				PRNT_LOG("Mountpoint busy...seems to be already connected!");
-				return;
-			} else {
-				PRNT_LOG("Mount error: " << strerror(errno));
-				exit(0);
-			}
-		} else {
-			PRNT_LOG("Mount successful");
-		}
-	}
+	return;
+//	PRNT_LOG("Called");
+//	int num_of_devices = atoi(CONF["homecloud_server.mount.num_of_devices"].c_str());
+//	for(int i =1;i<= num_of_devices;i++){
+//		PRNT_LOG("Mounting drive:" << CONF["homecloud_server.mount.source." + SSTR(i)] << " to:" <<CONF["homecloud_server.mount.target." + SSTR(i)]);
+//		if (mount(CONF["homecloud_server.mount.source." + SSTR(i)].c_str(),
+//				CONF["homecloud_server.mount.target." + SSTR(i)].c_str(),
+//				CONF["homecloud_server.mount.filesystemtype." + SSTR(i)].c_str(),
+//				MS_NOATIME, NULL)) {
+//			if (errno == EBUSY) {
+//				PRNT_LOG("Mountpoint busy...seems to be already connected!");
+//				return;
+//			} else {
+//				PRNT_LOG("Mount error: " << strerror(errno));
+//				exit(0);
+//			}
+//		} else {
+//			PRNT_LOG("Mount successful");
+//		}
+//	}
 }
 void umountFlashDrive() {
 	const string fname="umountFlashDrive";
@@ -210,7 +211,7 @@ int listen_for_uploads(void)
                     	PRNT_LOG("[Socket "<<i <<"] data received from buffer in bytes:" << nbytes);
                     	//req_wrapper[i].add_data_chunk(buf,nbytes);
                         // got error or connection closed by client
-                    	if(req_wrapper[i].get_op_type() == op_type_download){
+                    	if(req_wrapper[i].get_op_type() == op_type_download ||req_wrapper[i].get_op_type() == op_type_download_shared ){
                     		PRNT_LOG("download connection disconnected...won't do anything and leave it to the child to do it");
 //                    		close(i); // bye!
 //							FD_CLR(i, &master); // remove from master set
@@ -238,7 +239,7 @@ int listen_for_uploads(void)
                     else {
                     //	PRNT_LOG("[Socket "<< i <<"] we got "<<nbytes<<" bytes from a client");
                     	req_wrapper[i].add_data_chunk(buf,nbytes);
-                    	if(req_wrapper[i].get_session_status() == Not_Valid_session ||req_wrapper[i].get_op_type() ==  op_type_not_exist){
+                    	if(req_wrapper[i].get_op_type() != op_type_download_shared &&(req_wrapper[i].get_session_status() == Not_Valid_session ||req_wrapper[i].get_op_type() ==  op_type_not_exist)){
                     		PRNT_LOG("The session is not valid! closing it: Session Status:" << req_wrapper[i].get_session_status()
 					 << " Operation type is:" << req_wrapper[i].get_op_type() );
                     		//sesson is not valid!
@@ -259,7 +260,7 @@ int listen_for_uploads(void)
                             //req_wrapper.dequeue_socket_opaque(i);
                             continue;
                     	}
-                    	if(req_wrapper[i].get_op_type() == op_type_download && req_wrapper[i].get_session_status() == Valid_session){
+                    	if(req_wrapper[i].get_op_type() == op_type_download_shared || (req_wrapper[i].get_op_type() == op_type_download && req_wrapper[i].get_session_status() == Valid_session)){
                     		/*if the user wants to download - then return this info to the main loop so it will fork a child that handle the process and then closes the socket*/
                     		PRNT_LOG("Starting download...");
                     		int pid  = fork();
@@ -285,6 +286,7 @@ int listen_for_uploads(void)
                     		memset(buf,0,sizeof(buf));
                     		continue;
                     	}
+						
                     	if(req_wrapper[i].get_op_type() == op_type_rename_file&& req_wrapper[i].get_session_status() == Valid_session){
 				PRNT_LOG("Rename file...");
 				int pid  = fork();
