@@ -111,11 +111,11 @@ bool Multipart_parser::is_finished_receiving_file(){
 bool Multipart_parser::relevant_info_headers_received(){
   const string fname = "handle_header_line";
   if ((this->getoperationtype() == op_type_download || this->getoperationtype() == op_type_upload)  &&(this->getsessionid() == "" || this->getfilename() == "" || !this->file_object_id.isSet())) {
-      PRNT_LOG("Return false");
+      PRNT_LOG("Return false:Operation type = '" << this->getoperationtype() <<"' this->getsessionid() ='"<<this->getsessionid() <<"' this->getfilename()='"<<this->getfilename()<<"' this->file_object_id.isSet()='"<< this->file_object_id.isSet()<<"'");
       return false;
   }
   if (this->getsessionid() == "" || this->getfilename() == "" || this->getoperationtype() == op_type_unknown) {
-    PRNT_LOG("Return false");
+      PRNT_LOG("Return false:Operation type = '" << this->getoperationtype() <<"' this->getsessionid() ='"<<this->getsessionid() <<"' this->getfilename()='"<<this->getfilename()<<"'");
       return false;
   }
   return true;

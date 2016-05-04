@@ -71,14 +71,14 @@ OID Database_API::get_file_objectid_from_files_table(const string& file_name,
 	}
 	return OID();
 }
-void Database_API::update_file_percentage(size_t percentage,const OID& file_record_oid){
-	const string fname = "update_file_percentage";
-	//PRNT_LOG("Called with oid="<<file_record_oid);
-	conn.get()->update("home_cloud_db.files_table",
-			BSON("_id" << file_record_oid ),
-			BSON("$set"<< BSON("op_percentage" << percentage))
-	);
-}
+//void Database_API::update_file_percentage(size_t percentage,const OID& file_record_oid){
+//	const string fname = "update_file_percentage";
+//	//PRNT_LOG("Called with oid="<<file_record_oid);
+//	conn.get()->update("home_cloud_db.files_table",
+//			BSON("_id" << file_record_oid ),
+//			BSON("$set"<< BSON("op_percentage" << percentage))
+//	);
+//}
 void Database_API::update_file_status(const string& newstatus,const OID& file_record_oid){
 	const string fname = "update_file_percentage";
 	PRNT_LOG("Called with oid="<<file_record_oid);

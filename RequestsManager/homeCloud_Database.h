@@ -25,7 +25,7 @@ class Database_API{
         bool validate_session_id(const string& session_id,string& out_username);
         /*When finishing to download the file, we should update the downloading status.*/
         void update_downloaded_file_status(File_Upload_Download_Status download_status,const OID& file_record_oid);
-        void update_file_percentage(size_t percentage,const OID& file_record_oid);
+        //void update_file_percentage(size_t percentage,const OID& file_record_oid);
         string get_user_of_session(const string& session_id);
         void update_file_status(const string& newstatus,const OID& file_record_oid);
         /***

@@ -15,16 +15,15 @@
 using namespace std;
 using namespace boost::filesystem;
 
-string StorageManager::create_directory(const string& needed_dir){
+void StorageManager::create_directory(const string& needed_dir){
 	const string fname = "create_directory";
 	PRNT_LOG("Called needed_dir:"<<needed_dir);
-	const string dir_path = CONF["homecloud_server.mount.mountdir"]+needed_dir;
 
-	boost::filesystem::path dir(dir_path);
-	if(boost::filesystem::create_directory(dir)) {
+	boost::filesystem::path dir(needed_dir);
+	if(boost::filesystem::create_directories(dir)) {
 		PRNT_LOG("Success");
 	}
-	return dir_path;
+
 }
 
 
@@ -32,8 +31,10 @@ string StorageManager::build_file_full_path(const string& dir,const std::string&
   const string fname = "createFilePathForUser";
   ostringstream dir_path;
 
-  dir_path << CONF["homecloud_server.mount.mountdir"]   <<"/"<<dir << "/"<<filename;
-
+  dir_path << CONF["homecloud_server.mount.mountdir"]   <<"/"<<dir;
+  create_directory(dir_path.str());
+  dir_path << "/" <<filename;
+  PRNT_LOG("the generated path is " << dir_path);
   return dir_path.str();
 }
 bool StorageManager::is_file_exist (const string& dir,const std::string& file_name,const string& username) {

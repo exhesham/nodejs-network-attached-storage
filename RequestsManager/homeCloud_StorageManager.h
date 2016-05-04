@@ -13,7 +13,7 @@ using namespace std;
 
 class StorageManager{
 public:
-	string static create_directory(const string& dir);
+	void static create_directory(const string& dir);
 
 
 	bool static is_file_exist (const string& dir,const std::string& filename,const string& username);

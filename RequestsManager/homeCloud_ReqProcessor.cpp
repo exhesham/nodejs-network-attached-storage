@@ -119,7 +119,7 @@ bool Socket_data::send_file_to_client(){
 
 
 		/*update database*/
-		Database_API::getInstance()->update_file_percentage(curr_pos,multiparser.getobjoid());
+		//Database_API::getInstance()->update_file_percentage(curr_pos,multiparser.getobjoid());
 		if(file_size - curr_pos < buff_size){
 			buff_size = file_size - curr_pos;
 		}
@@ -139,11 +139,12 @@ cleanup:
  * if it belongs to a download file request, then the download method will handle it.*/
 void Socket_data::add_data_chunk(const char* buff,unsigned int buff_size) {
 		string fname = "add_data_chunk";
-		PRNT_LOG("Called");
+		//PRNT_LOG("Called");
 		if(buff == NULL || buff_size == 0){
 		    PRNT_LOG("Bad input");
 		    return;
 		}
+		//PRNT_LOG("Buff=" << buff);
 		if(multiparser.is_finished_receiving_file() == true){
 			PRNT_LOG("Finished receiving file...return.");
 			return;
@@ -209,7 +210,7 @@ void Socket_data::add_data_chunk(const char* buff,unsigned int buff_size) {
 		//data_status = Receiving_file;
 		if(multiparser.getoperationtype() == op_type_upload || multiparser.getoperationtype() == op_type_unknown){
 			multiparser.parse_buffer(buff,buff_size,socket_buff_upload_file);
-			Database_API::getInstance()->update_file_percentage(multiparser.get_already_received_bytes(),multiparser.getobjoid());
+			//Database_API::getInstance()->update_file_percentage(multiparser.get_already_received_bytes(),multiparser.getobjoid());
 		}
 	}
 /********************************************************************************************************************/
