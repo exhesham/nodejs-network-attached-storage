@@ -1,0 +1,6 @@
+homecloud_server.mount.num_of_devices=1
+homecloud_server.mount.source.1=/dev/sdg1
+homecloud_server.mount.target.1=/var/log/jail/home_cloud_storage/
+homecloud_server.mount.filesystemtype.1=vfat
+
+homecloud_server.networking.filesport=9034
