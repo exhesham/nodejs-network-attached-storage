@@ -18,5 +18,4 @@ nexe.compile({
         return console.log(err);
     }
 
-     // do whatever
 });

@@ -1,42 +1,37 @@
-var RELATIVE_DIR = "/home/pi/homecloud/SmartRaspian/"
-var MOUNT_DIR = "/media/pi"
-
-var https = require('https'),
-fs = require('fs'),
-process = require('process'),
-qs = require('querystring'),
-express = require('express'),
-crypto = require('crypto'),
-bodyParser = require('body-parser'),
-path = require("path"),
-util  = require('util'),
-//sys = require('sys'),
-formidable = require("formidable"),
-httprequestlib = require('request'),
-
-exec = require('child_process').exec;
+/* packages */
+var https = require('https');
+var fs = require('fs');
+var process = require('process');
+var qs = require('querystring');
+var express = require('express');
+var crypto = require('crypto');
+var path = require("path");
+var util  = require('util');
+var formidable = require("formidable");
+var httprequestlib = require('request');
+var exec = require('child_process').exec;
 var bodyParser = require('body-parser');
-/*includes */
 var db_api = require( './web_server_db_api');
 var db_account = require( './web_server_account_db');
 var hc_utils = require( './HomeCloud_Utils');
 var hc_deluxeapi = require('./HomeCloud_DeluxeAPI');
 var app = express();
 
+
+/* globals */
+var RELATIVE_DIR = "/home/pi/homecloud/SmartRaspian/"
+var MOUNT_DIR = "/media/pi"
 var total_ram = -1;
 var mounted_drives_json  = [];
-
-/// Include the express body parser
-// parse application/x-www-form-urlencoded
-app.use(bodyParser.json()); // support json encoded bodies
-app.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
-
-//https key and certificate
 var options = {
-  cert: fs.readFileSync(RELATIVE_DIR + 'thunderclouding.crt')  ,
-  key: fs.readFileSync(RELATIVE_DIR + 'thundercloudingemeraldclouding.pem')
+	cert: fs.readFileSync(RELATIVE_DIR + 'thunderclouding.crt')  ,
+	key: fs.readFileSync(RELATIVE_DIR + 'thundercloudingemeraldclouding.pem')
 };
 
+
+/* Include the express body parser */
+app.use(bodyParser.json()); // support json encoded bodies
+app.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
 
 function log_data(fname,data)
 {
@@ -53,7 +48,7 @@ Parameters:
 
 Returns a json array which contains the files/folders/mounted drives
 */			
-app.get('/GetFolderContents', function(request, response) {
+app.all('/api/v1/fs/folder/content', function(request, response) {
 	var fname = "GetFolderContents";
 	log_data(fname,"Called");
 	is_valid_session(request,function(is_valid){ // function to check if the session is valid
@@ -131,70 +126,7 @@ app.get('/GetFolderContents', function(request, response) {
 	});
 	
 });
-/*****************************************************************************************************************/
-/**
-@Depricated!!!!!
 
-Post a request to /UploadFilesRequest with the json detailed below:
-Expecting detailed array json which handles the files to be uploaded
-{
-	[
-		{	
-			number_of_chunks:3,
-			file_name:breaking bad part 1.avi,
-			file_path:"/hesham/tv shows/breaking bad"
-			sha1:sdfkjsdlkfjsdklfjsdklfjiw34o32k4j23kl4j23ki4j23lk4j
-			file_size:123123123
-			chunks_stat:[
-							{chunk_number:1, md5:"fjksdjfhkj345hkj34h5k3j45hk3j4l23",size:213123}
-							{chunk_number:2, md5:"fjks11fhkj345hkj34h5k3j45hk3j4l23",size:21313}
-							{chunk_number:3, md5:"fjks546456345hkj34h5k3j45hk3j4l23",size:2131123}
-						]
-		}
-	]
-	
-	The files table
-	-----------------------------------------------------------------------------
-	file_name | [file_sha1] | file_size | [username] | path to file | upload_date
-	-----------------------------------------------------------------------------
-	
-	
-	The chunks table:
-	----------------------------------------------------------------------------------------
-	chunk_name | chunk_size | [chunk_sha1] | [chunk file sha1] | [username] | status | Date
-	----------------------------------------------------------------------------------------
-	
-}
---------------------------------------------------------------------------------------------------
-
-**/
-
-/*****************************************************************************************************************/
-app.post('/DownloadFileRequest', function(request, response) {
-	var fname = "DownloadFileRequest";
-	log_data(fname,"Called");
-	log_data(fname,"The requested json is:"+JSON.stringify(request.body));
-	is_valid_session(request,function(is_valid,session_data){
-		if(is_valid)
-		{
-			log_data(fname,"the session is valid for username:"+session_data.username);
-			//TODO: check first if the file is not uploading. if so, don't download it.
-			
-			db_api.db_api_add_new_file_request_to_database(request.body,session_data.username,function(is_allowed,err,validated_chunks){//The request body already has the operation type:Upload/Download
-				log_data(fname,"validated_chunks are "+validated_chunks);
-				//response.writeHead(200,{"Content-Type":"application/json"});
-				// send the validated chunks to be sent
-				response.writeHeader(200, {"Content-Type": "text/json"});  
-				response.write(JSON.stringify({'status': 'SUCCESS' ,'validated_chunks':validated_chunks}));
-				response.end(); 
-			});
-			
-		}else{
-			send_logout_redirect(response);
-		}
-	});
-	
-});
 /*****************************************************************************************************************/
 /*
 Servlet Name: create_folder
@@ -204,7 +136,7 @@ Parameters:
 
 Returns a json array which contains the files/folders/mounted drives
 */
-app.get('/create_folder', function(request, response) {
+app.get('/api/v1/fs/folder/create', function(request, response) {
 var fname = "create_folder";
 	log_data(fname,"Called");
 	
@@ -241,7 +173,7 @@ Parameters:
 @file_name:
 @file_new_name
 */
-app.get('/rename_file', function(request, response) {
+app.get('/api/v1/fs/file/rename', function(request, response) {
 var fname = "rename_file";
 	log_data(fname,"Called");
 	
@@ -273,7 +205,7 @@ Parameters:
 @key_token: Token for the shared file
 
 */
-app.get('/download_shared', function(request, response) {
+app.all('/api/v1/fs/shared/download', function(request, response) {
 	var fname = "download_shared";
 	log_data(fname,"Called");
 	// get the data
@@ -319,7 +251,7 @@ Parameters:
 @file_name
 @file_path
 */
-app.get('/download_file', function(request, response) {
+app.all('/api/v1/fs/file/download', function(request, response) {
 	var fname = "dwonload_file";
 	var file_name = request.param("file_name");
 	log_data(fname,"called with file_name="+file_name);
@@ -364,7 +296,7 @@ Headers:
 @
 
 */
-app.post('/UploadFile', function(request, response) {
+app.all('/api/v1/fs/file/upload', function(request, response) {
 	var fname = "UploadFile";
 	log_data(fname,"Uploading ");
 	is_valid_session(request,function(is_valid,session_data){
@@ -420,104 +352,15 @@ app.post('/UploadFile', function(request, response) {
 	
 });
 /*****************************************************************************************************************/
-function send_request_to_logic_layer(headers_to_send,request,response){
-	var fname = "send_request_to_logic_layer";
-	var backendUrl = 'http://127.0.0.1:9034';
-
-	// if(headers_to_send != null && headers_to_send != undefined){
-		// for(var key in headers_to_send){
-			
-		// }
-	// }
-	try{
-			request.pipe(
-				httprequestlib({
-								url:backendUrl,
-								headers:headers_to_send
-					},function(error, r, body){
-							if (error != null){
-								
-								log_data(fname,"Failed to pipe:" + error);
-								response.writeHeader(500, {"Content-Type": "text/json"});  
-								response.end();
-								return;
-							
-							} else { 
-								log_data(fname,"Upload success" + error);
-								if(operation_type == "Upload"){
-									request.on('data',function(d){
-										 log_data(fname,"Uploading ");
-									});
-								}
-							
-							}
-						})
-			).pipe(response);
-		//response.send({status: 'SUCCESS' });
-		
-	}catch(ex){
-		log_data(fname,"Failed to pipe:" + ex);
-		response.send({status: 'FAIL' });
-	}
-}
-/*****************************************************************************************************************/
 /*
-Servlet Name: validate_session
-Request Type: GET
-Parameters: 
-@The cookie content only
+ Servlet Name: getdeluxecontent
+ Request Type: POST
+ Headers/Body:
+ @The cookie content only
 
-if valid session then status 200 is returned. Otherwise, the session is not valid!
-*/
-app.get('/validate_session', function(req, res) {
-	var fname = "validate_session";
-	log_data(fname,"Called....");
-	is_valid_session(req,function(is_valid,session_data){
-		if(!is_valid){
-			log_data(fname,"Not a valid session");
-			res.writeHead(406, {'Content-Type': 'text/plain'});
-			res.end("Invalid Session");
-		}else{
-			res.writeHead(200, {'Content-Type': 'text/plain'});
-			res.end("Valid Session");
-		}
-	});
-	
-});
-/*****************************************************************************************************************/
-/*
-Servlet Name: logout
-Request Type: GET
-Parameters: 
-@The cookie content only
-
-delete the session from db
-*/
-app.get('/logout', function(req, res) {
-	var fname="logout";
-	log_data( fname, "Called...");
-	is_valid_session(req,function(is_valid,session_data){
-		if(!is_valid){
-			log_data(fname,"Not a valid session");
-			send_status_code(406, "Invalid Session");
-		}else{
-			var cookies = parseCookies(req);
-			db_account.delete_session_from_db(cookies["session"],function(err){
-				send_logout_redirect(res);
-			});
-		}
-	});
-});
-/*****************************************************************************************************************/
-/*
-Servlet Name: getdeluxecontent
-Request Type: POST
-Headers/Body: 
-@The cookie content only
-
-Return a json with the files that are favorite/shared...
-*/
-app.post('/getdeluxecontent', function(req, res) {
+ Return a json with the files that are favorite/shared...
+ */
+app.post('/api/v1/fs/file/favorites', function(req, res) {
 	var fname="getdeluxecontent";
 	log_data(fname,"Called...");
 	is_valid_session(req,function(is_valid,session_data){
@@ -525,9 +368,9 @@ app.post('/getdeluxecontent', function(req, res) {
 			log_data(fname,"Not a valid session");
 			send_logout_redirect(res);
 		}else{
-			
+
 			//username,file_status,operation_type,files_callback
-			
+
 			hc_utils.db_api_find_records_by_filter({"username" : session_data.username},"deluxe_table",function(data){
 				if(data != null){
 					log_data(fname,"Sending data...num of records:"+data.length);
@@ -539,21 +382,21 @@ app.post('/getdeluxecontent', function(req, res) {
 					send_status_code(res,500);
 					return;
 				}
-				
+
 			});
 		}
 	});
 });
 /*****************************************************************************************************************/
 /*
-Servlet Name: getsharedlinks
-Request Type: GET
-Parameters: 
-@The cookie content only
+ Servlet Name: getsharedlinks
+ Request Type: GET
+ Parameters:
+ @The cookie content only
 
-Return the shared links as json structure...
-*/
-app.get('/getsharedlinks', function(req, res) {
+ Return the shared links as json structure...
+ */
+app.all('/api/v1/fs/shared/content', function(req, res) {
 	var fname="getsharedlinks";
 	log_data(fname,"Called...");
 	is_valid_session(req,function(is_valid,session_data){
@@ -561,9 +404,9 @@ app.get('/getsharedlinks', function(req, res) {
 			log_data(fname,"Not a valid session");
 			send_logout_redirect(res);
 		}else{
-			
+
 			//username,file_status,operation_type,files_callback
-			
+
 			hc_utils.db_api_find_records_by_filter({"owner" : session_data.username},"hc_shared_links",function(data){
 				if(data != null){
 					log_data(fname,"Sending data...num of records:"+data.length);
@@ -575,36 +418,37 @@ app.get('/getsharedlinks', function(req, res) {
 					send_status_code(res,500);
 					return;
 				}
-				
+
 			});
 		}
 	});
 });
 /*****************************************************************************************************************/
+
 /*****************************************************************************************************************/
 /*
-Servlet Name: deluxerequest
-Request Type: POST
-Body: A json with the next structure:
-{"operation_type":"","file_name":"","file_path":""}
+ Servlet Name: deluxerequest
+ Request Type: POST
+ Body: A json with the next structure:
+ {"operation_type":"","file_name":"","file_path":""}
 
 
-operation_type=add_to_favorites:	
-	add a file to favorites or remove it from there.
-	input: file_name,file_path:name and path of the file
-	output: status=200 then success, status=500 then failed
-operation_type=remove_share_link
-operation_type=generate_share_link
-operation_type=move_to_trash
-operation_type=
-operation_type=
-operation_type=
-operation_type=
-operation_type=
-Deluxe Table: deluxe_table:Stores data regarding files. contains additional data about files. favorites,notes,shares...
-|file_name | file_path| file_owner | is_favorite | is_shared_public | shared_with_users | is_shared_locally | file_note | is_file_trashed | is_file_encrypted
-*/
-app.post('/deluxerequest', function(req, res) {
+ operation_type=add_to_favorites:
+ add a file to favorites or remove it from there.
+ input: file_name,file_path:name and path of the file
+ output: status=200 then success, status=500 then failed
+ operation_type=remove_share_link
+ operation_type=generate_share_link
+ operation_type=move_to_trash
+ operation_type=
+ operation_type=
+ operation_type=
+ operation_type=
+ operation_type=
+ Deluxe Table: deluxe_table:Stores data regarding files. contains additional data about files. favorites,notes,shares...
+ |file_name | file_path| file_owner | is_favorite | is_shared_public | shared_with_users | is_shared_locally | file_note | is_file_trashed | is_file_encrypted
+ */
+app.post('/api/v1/fs/folder/favorites', function(req, res) {
 	var fname="deluxerequest";
 	log_data(fname,"Called...");
 	is_valid_session(req,function(is_valid,session_data){
@@ -703,11 +547,11 @@ app.post('/deluxerequest', function(req, res) {
 									send_status_code(res,200,"key_token="+generated_hash);
 								});
 							}
-							
+
 						}); // hc_utils.hc_generate_random_hash
 					}
 				}); // db_api_find_records_by_filter
-				
+
 				return;
 			}
 			if(deluxe_req.operation_type == "share_file_with_other_user"){
@@ -719,13 +563,103 @@ app.post('/deluxerequest', function(req, res) {
 				return;
 			}
 			// if(deluxe_req.operation_type == ""){
-				// return;
+			// return;
 			// }
-			
+
 		}
 	});
 });
 /*****************************************************************************************************************/
+function send_request_to_logic_layer(headers_to_send,request,response){
+	var fname = "send_request_to_logic_layer";
+	var backendUrl = 'http://127.0.0.1:9034';
+
+	// if(headers_to_send != null && headers_to_send != undefined){
+		// for(var key in headers_to_send){
+			
+		// }
+	// }
+	try{
+			request.pipe(
+				httprequestlib({
+								url:backendUrl,
+								headers:headers_to_send
+					},function(error, r, body){
+							if (error != null){
+								
+								log_data(fname,"Failed to pipe:" + error);
+								response.writeHeader(500, {"Content-Type": "text/json"});  
+								response.end();
+								return;
+							
+							} else { 
+								log_data(fname,"Upload success" + error);
+								if(operation_type == "Upload"){
+									request.on('data',function(d){
+										 log_data(fname,"Uploading ");
+									});
+								}
+							
+							}
+						})
+			).pipe(response);
+		//response.send({status: 'SUCCESS' });
+		
+	}catch(ex){
+		log_data(fname,"Failed to pipe:" + ex);
+		response.send({status: 'FAIL' });
+	}
+}
+/*****************************************************************************************************************/
+/*
+Servlet Name: validate_session
+Request Type: GET
+Parameters: 
+@The cookie content only
+
+if valid session then status 200 is returned. Otherwise, the session is not valid!
+*/
+app.get('/validate_session', function(req, res) {
+	var fname = "validate_session";
+	log_data(fname,"Called....");
+	is_valid_session(req,function(is_valid,session_data){
+		if(!is_valid){
+			log_data(fname,"Not a valid session");
+			res.writeHead(406, {'Content-Type': 'text/plain'});
+			res.end("Invalid Session");
+		}else{
+			res.writeHead(200, {'Content-Type': 'text/plain'});
+			res.end("Valid Session");
+		}
+	});
+	
+});
+/*****************************************************************************************************************/
+/*
+Servlet Name: logout
+Request Type: GET
+Parameters: 
+@The cookie content only
+
+delete the session from db
+*/
+app.get('/api/v1/user/logout', function(req, res) {
+	var fname="logout";
+	log_data( fname, "Called...");
+	is_valid_session(req,function(is_valid,session_data){
+		if(!is_valid){
+			log_data(fname,"Not a valid session");
+			send_status_code(406, "Invalid Session");
+		}else{
+			var cookies = parseCookies(req);
+			db_account.delete_session_from_db(cookies["session"],function(err){
+				send_logout_redirect(res);
+			});
+		}
+	});
+});
+/*****************************************************************************************************************/
+
 function get_clean_path(path){
 	if(path == undefined || path == null){
 		return path;
@@ -789,7 +723,7 @@ Body:JSON with the next keys:
 {"username":"","password":""}
 
 */
-app.post('/login_password', function(req, res) {
+app.post('/api/v1/user/login', function(req, res) {
 	var fname = "login_password";
 	log_data( fname, JSON.stringify(req.body));
 	var request_content = req.body;
@@ -842,7 +776,7 @@ Request Type: POST
 Body:JSON with the next keys: 
 {"username":"","password":"","repassword":"","adminusername":"","adminpassword":"","cloudkey":""}
 */
-app.post('/create_new_account', function(req, res) {
+app.post('/api/v1/user/new', function(req, res) {
 	var fname = "create_new_account";
 	var request_content = req.body;
 	if(request_content == undefined || request_content == null)
@@ -911,7 +845,7 @@ Servlet Name: getperformance
 Request Type: GET
 @Parameters: Only the session cookie...
 */
-app.get('/getperformance', function(req, response) {
+app.get('/api/v1/user/getperformance', function(req, response) {
 	var fname = "getperformance";
 	log_data(fname, "Called");
 	is_valid_session(req,function(is_valid,sessionData){
